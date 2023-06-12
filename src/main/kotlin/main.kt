@@ -20,13 +20,13 @@ class NoteService<T> {
 
     fun del(item: T): String {
         if (item is Note) {
-            if (notes.getOrNull(item.noteId.toInt()) == null) return errorNotFound.toString()
-            notes.removeAt(item.noteId.toInt())
+            if (notes.none { it.noteId == item.noteId }) return errorNotFound.toString()
+            notes.remove(item)
             comments.removeAll(comments.filter { it.noteId == item.noteId })
             return operationSuccessfully.toString()
         } else if (item is Comment) {
-            if (comments.getOrNull(item.commentId.toInt()) == null) return errorNotFound.toString()
-            comments[item.commentId.toInt()].delete = true
+            if (comments.none { it.commentId == item.commentId }) return errorNotFound.toString()
+            comments[comments.indexOf(item)].delete = true
             return operationSuccessfully.toString()
         }
         return errorNotFound.toString()
@@ -34,17 +34,17 @@ class NoteService<T> {
 
     fun edit(item: T): String {
         if (item is Note) {
-            if (notes.getOrNull(item.noteId.toInt()) != null) {
-                notes[item.noteId.toInt()] = item
+            if (!notes.none { it.noteId == item.noteId }) {
+                notes[notes.indexOf(notes.find { it.noteId== item.noteId })] = item
                 return operationSuccessfully.toString()
             }
             return errorNotFound.toString()
         } else if (item is Comment) {
-            if (comments.getOrNull(item.commentId.toInt()) != null) {
-                if (comments[item.commentId.toInt()].delete) {
-                    throw PostNotFoundException("Комментария с id:${item.commentId} - удален")
+            if (!comments.none { it.commentId == item.commentId }) {
+                if (comments[comments.indexOf(comments.find { it.commentId == item.commentId })].delete) {
+                    throw PostNotFoundException("Комментарий с id:${item.commentId} - удален")
                 }
-                comments[item.commentId.toInt()] = item
+                comments[comments.indexOf(comments.find { it.commentId == item.commentId })] = item
                 return operationSuccessfully.toString()
             }
             return errorNotFound.toString()
@@ -60,8 +60,8 @@ class NoteService<T> {
     }
 
     fun getById(idNote: String): Any {
-        if (notes.getOrNull(idNote.toInt()) != null) {
-            return notes[idNote.toInt()]
+        if (!notes.none { it.noteId == idNote }) {
+            return notes[notes.indexOf(notes.find { it.noteId == idNote })]
         }
         return errorNotFound.toString()
     }
@@ -74,8 +74,8 @@ class NoteService<T> {
     }
 
     fun restoreComment(idComment: String): Any {
-        if (comments.getOrNull(idComment.toInt()) != null) {
-            comments[idComment.toInt()].delete = false
+        if (!comments.none { it.commentId == idComment }) {
+            comments[comments.indexOf(comments.find { it.commentId == idComment })].delete = false
             return operationSuccessfully.toString()
         }
         return errorNotFound
